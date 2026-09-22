@@ -1,0 +1,11 @@
+azure-search-documents>=11.6,<12
+azure-ai-documentintelligence>=1.0,<2
+azure-core>=1.36,<2
+azure-identity>=1.25,<2
+openai>=2,<3
+tiktoken>=0.12,<1
+fastapi>=0.119,<1
+uvicorn[standard]>=0.38,<1
+python-dotenv>=1.1,<2
+pydantic>=2.12,<3
+httpx>=0.28,<1
