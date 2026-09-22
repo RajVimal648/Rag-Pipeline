@@ -86,7 +86,7 @@ Supported formats: UTF-8 `.txt`, `.md`, `.csv`; PDFs and `.png`, `.jpg`, `.jpeg`
 
 ```powershell
 python -m ingestion.ingest .\data --source-prefix knowledge
-python -m ingestion.ingest .\data\handbook.pdf --source-prefix knowledge
+python -m ingestion.ingest .\data\orion-launch-plan.pdf --source-prefix knowledge
 ```
 
 The CLI reports document/chunk counts and failures as JSON, with a nonzero exit code if anything fails. It bounds file size, batches embedding/index requests, validates embedding dimensions, and refuses incompatible existing index schemas. It never deletes or recreates an existing index automatically.
@@ -106,25 +106,25 @@ python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
 - `POST /query`: retrieve context and generate a cited answer.
 
 ```powershell
-$body = @{ question = "What does the handbook say about leave?"; top_k = 5 } | ConvertTo-Json
+$body = @{ question = "What must Project Orion complete before its pilot launch?"; top_k = 5 } | ConvertTo-Json
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/query -ContentType 'application/json' -Body $body
 ```
 
-When `API_KEY` is configured, add `-Headers @{ 'X-API-Key' = '<your-application-key>' }`. Optionally include `source` in the request to restrict retrieval to an exact indexed source, such as `knowledge/handbook.pdf`. Omit `source` to search all indexed documents; a placeholder such as `"string"` is treated as a real filter, not as an unset value.
+When `API_KEY` is configured, add `-Headers @{ 'X-API-Key' = '<your-application-key>' }`. Optionally include `source` in the request to restrict retrieval to an exact indexed source, such as `knowledge/orion-launch-plan.pdf`. Omit `source` to search all indexed documents; a placeholder such as `"string"` is treated as a real filter, not as an unset value.
 
-Example response shape:
+Illustrative response for a fictional Project Orion launch plan, not a live API result. The example PDF is not bundled with this repository; ingest your own documents and adapt the question. Chunk IDs and scores are generated at runtime.
 
 ```json
 {
-	"answer": "The handbook describes the leave policy [1].",
+	"answer": "Before its pilot launch, Project Orion must pass security review, validate the data migration, and assign an on-call owner for each service [1].",
 	"sources": [
 		{
 			"number": 1,
 			"chunk_id": "stable-chunk-hash",
-			"source": "knowledge/handbook.pdf",
-			"title": "handbook.pdf",
-			"page": 2,
-			"content": "The actual excerpt supplied to the model...",
+			"source": "knowledge/orion-launch-plan.pdf",
+			"title": "orion-launch-plan.pdf",
+			"page": 3,
+			"content": "Pilot launch gate: security review must pass, data migration must be validated, and every service must have an assigned on-call owner before Project Orion can launch.",
 			"score": 0.032
 		}
 	]
