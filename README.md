@@ -1,12 +1,36 @@
-# Document RAG Pipeline
+# Document Intelligence RAG Pipeline
 
-Python RAG pipeline using Azure OpenAI deployments in Microsoft Foundry, Azure AI Search, Azure Document Intelligence, and FastAPI. The existing `ingestion/`, `query/`, and `api/` modules own the respective stages.
+A standalone Python backend application for asking questions about your own documents and receiving answers with supporting source excerpts. It uses Azure OpenAI deployments in Microsoft Foundry, Azure AI Search, Azure Document Intelligence, and FastAPI.
+
+This is a general-purpose document question-answering project, not a library-management system or a reusable Python library package. It can work with project documentation, business reports, policies, technical manuals, and other supported documents. The subject matter comes from the documents you ingest; it is not tied to books, catalogs, or any particular industry.
+
+## What the Application Does
+
+- Ingests local documents through a command-line workflow, extracting text or using OCR for PDFs and images.
+- Splits text into token-sized chunks and stores their embeddings in Azure AI Search.
+- Retrieves relevant excerpts using hybrid keyword and vector search.
+- Exposes a FastAPI endpoint that returns document-grounded answers with citations.
+- Returns an insufficient-evidence answer when no usable sources are found.
+
+The current interface is a backend API with Swagger for interactive requests. A dedicated chat frontend, user-account management, and document-upload API are not included.
+
+## Architecture
 
 ```text
 Local documents -> text/OCR -> token chunks -> embeddings -> Azure AI Search
 Question -> embedding -> hybrid keyword + vector search -> bounded context
 				 -> Azure OpenAI -> answer with inline citations and source excerpts
 ```
+
+### Project Structure
+
+| Path | Responsibility |
+| --- | --- |
+| `config.py` | Environment settings and configuration validation |
+| `ingestion/` | Document loading, chunking, embeddings, indexing, and ingestion CLI |
+| `query/` | Retrieval, model requests, context limits, and citation validation |
+| `api/main.py` | FastAPI application, request validation, and optional API-key authentication |
+| `tests/test_pipeline.py` | Automated tests using mocked Azure clients |
 
 ## Prerequisites
 
@@ -86,7 +110,7 @@ $body = @{ question = "What does the handbook say about leave?"; top_k = 5 } | C
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/query -ContentType 'application/json' -Body $body
 ```
 
-When `API_KEY` is configured, add `-Headers @{ 'X-API-Key' = '<your-application-key>' }`. Optionally include `source` in the request to restrict retrieval to an exact indexed source, such as `knowledge/handbook.pdf`.
+When `API_KEY` is configured, add `-Headers @{ 'X-API-Key' = '<your-application-key>' }`. Optionally include `source` in the request to restrict retrieval to an exact indexed source, such as `knowledge/handbook.pdf`. Omit `source` to search all indexed documents; a placeholder such as `"string"` is treated as a real filter, not as an unset value.
 
 Example response shape:
 

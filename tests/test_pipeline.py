@@ -262,6 +262,17 @@ class RAGTests(unittest.TestCase):
 
 
 class APITests(unittest.TestCase):
+    def test_swagger_example_searches_all_sources(self):
+        service = MagicMock()
+        service.query.return_value = QueryResponse(answer=NO_EVIDENCE, sources=[])
+        with TestClient(create_app(Settings(api_key="test-key"), service)) as client:
+            schema = client.get("/openapi.json").json()["components"]["schemas"]["QueryRequest"]
+            example = schema["examples"][0]
+            self.assertNotIn("source", example)
+            response = client.post("/query", headers={"X-API-Key": "test-key"}, json=example)
+            self.assertEqual(response.status_code, 200)
+            service.query.assert_called_once_with(example["question"], example["top_k"], None)
+
     def test_auth_validation_and_query(self):
         service = MagicMock()
         service.query.return_value = QueryResponse(answer=NO_EVIDENCE, sources=[])

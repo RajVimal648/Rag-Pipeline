@@ -19,10 +19,13 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 class QueryRequest(BaseModel):
-	model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+	model_config = ConfigDict(
+		extra="forbid", str_strip_whitespace=True,
+		json_schema_extra={"examples": [{"question": "Who was India's Prime Minister on 10 June 2024?", "top_k": 5}]},
+	)
 	question: str = Field(min_length=1, max_length=4000)
 	top_k: int | None = Field(default=None, ge=1, le=20)
-	source: str | None = Field(default=None, min_length=1, max_length=1024)
+	source: str | None = Field(default=None, min_length=1, max_length=1024, description="Optional exact source identifier, such as knowledge/test.txt. Omit to search all documents.")
 
 	@field_validator("question")
 	@classmethod
